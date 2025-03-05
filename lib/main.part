@@ -1,0 +1,312 @@
+ import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Cortes de Producción L1',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        textTheme: TextTheme(
+          titleLarge: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color:
+                Colors
+                    .white, // Blanco para que se vea bien sobre el fondo negro
+          ),
+        ),
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const MyHomePage(),
+        '/corteLavadora': (context) => const CorteLavadoraScreen(),
+        '/screen1': (context) => const Screen1(),
+        '/screen2': (context) => const Screen2(),
+        '/screen3': (context) => const Screen3(),
+      },
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black, // Fondo negro en la pantalla principal
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, // Hacemos la AppBar transparente
+        elevation: 0, // Quitamos la sombra
+        title: Center(
+          child: Text(
+            'Cortes de Producción L1',
+            style: Theme.of(context).textTheme.titleLarge, // Usar titleLarge
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+              'assets/images/fondo.png',
+            ), // Cambiar a la imagen de fondo
+            fit: BoxFit.cover, // La imagen cubre toda la pantalla
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment:
+                MainAxisAlignment.center, // Alineación vertical centrada
+            crossAxisAlignment:
+                CrossAxisAlignment.center, // Alineación horizontal centrada
+            children: <Widget>[
+              _buildIconWithText(
+                context,
+                Icons.local_laundry_service,
+                'Corte en Lavadora',
+                '/corteLavadora',
+              ),
+              const SizedBox(height: 20),
+              _buildIconWithText(
+                context,
+                Icons.local_drink,
+                'Botella de Cerveza',
+                '/screen1',
+              ),
+              const SizedBox(height: 20),
+              _buildIconWithText(
+                context,
+                Icons.crop_square,
+                'Filler',
+                '/screen2',
+              ),
+              const SizedBox(height: 20),
+              _buildIconWithText(
+                context,
+                Icons.add_box,
+                'Pantalla 3',
+                '/screen3',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconWithText(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+  ) {
+    return Row(
+      mainAxisAlignment:
+          MainAxisAlignment
+              .center, // Alineación centrada para los iconos y nombres
+      children: <Widget>[
+        IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, route);
+          },
+          icon: Icon(icon, size: 60.0), // Hacemos los iconos más grandes
+          color: Colors.white,
+        ),
+        const SizedBox(width: 10),
+        Container(
+          color: const Color(0xFF000000).withValues(
+            red: 0,
+            green: 0,
+            blue: 0,
+            alpha: 178, // 70% opacidad en lugar de 0.7
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: Text(label, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+}
+
+// Corte en Lavadora Screen
+class CorteLavadoraScreen extends StatefulWidget {
+  const CorteLavadoraScreen({super.key});
+
+  @override
+  CorteLavadoraScreenState createState() => CorteLavadoraScreenState();
+}
+
+class CorteLavadoraScreenState extends State<CorteLavadoraScreen> {
+  final TextEditingController canastosController = TextEditingController();
+  final TextEditingController hilerasController = TextEditingController();
+  final TextEditingController rechazoController = TextEditingController();
+  final TextEditingController bufferController = TextEditingController();
+
+  String? formatoSeleccionado = '600'; // Formato por defecto
+  double volumenLavadora = 0.0;
+  double golpesParaCorte = 0.0;
+
+  void calcularValores() {
+    double canastos = double.tryParse(canastosController.text) ?? 0.0;
+    double hileras = double.tryParse(hilerasController.text) ?? 0.0;
+    double rechazo = double.tryParse(rechazoController.text) ?? 0.0;
+    double buffer = double.tryParse(bufferController.text) ?? 0.0;
+
+    if (formatoSeleccionado == '600') {
+      volumenLavadora = (canastos * hileras * 600) / 100000;
+      double volBeer = buffer + 35;
+      double volEnvase = 24 - rechazo * 18;
+      double volFaltante = volBeer - volEnvase;
+      golpesParaCorte =
+          (volumenLavadora - volFaltante - 0.00000000000002) / 0.1734;
+    } else if (formatoSeleccionado == '550') {
+      volumenLavadora = (canastos * hileras * 550) / 100000;
+      double volBeer = buffer + 35;
+      double volEnvase = 23 - rechazo * 17;
+      double volFaltante = volBeer - volEnvase;
+      golpesParaCorte = (volumenLavadora - volFaltante) / 0.165;
+    }
+
+    // Redondear los resultados a 2 decimales
+    volumenLavadora = double.parse(volumenLavadora.toStringAsFixed(2));
+    golpesParaCorte = double.parse(golpesParaCorte.toStringAsFixed(2));
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFFD1C4E9), // Fondo color lavanda
+      appBar: AppBar(
+        title: const Text('Corte en Lavadora'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButton<String>(
+              value: formatoSeleccionado,
+              onChanged: (String? newValue) {
+                setState(() {
+                  formatoSeleccionado = newValue;
+                });
+              },
+              items:
+                  <String>['600', '550'].map<DropdownMenuItem<String>>((
+                    String value,
+                  ) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: canastosController,
+              decoration: const InputDecoration(labelText: 'Canastos'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: hilerasController,
+              decoration: const InputDecoration(labelText: 'Hileras'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: rechazoController,
+              decoration: const InputDecoration(labelText: '% de Rechazo IBV'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: bufferController,
+              decoration: const InputDecoration(labelText: 'Volumen Buffer'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: calcularValores,
+              child: const Text('Calcular'),
+            ),
+            const SizedBox(height: 20),
+            Text('Volumen Lavadora: $volumenLavadora'),
+            Text('Golpes para Corte: $golpesParaCorte'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pantalla 1
+class Screen1 extends StatelessWidget {
+  const Screen1({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFFD1C4E9), // Fondo color lavanda
+      appBar: AppBar(title: const Text('Pantalla 1')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // Regresar a la pantalla anterior
+          },
+          child: const Text('Regresar a la pantalla principal'),
+        ),
+      ),
+    );
+  }
+}
+
+// Pantalla 2
+class Screen2 extends StatelessWidget {
+  const Screen2({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFFD1C4E9), // Fondo color lavanda
+      appBar: AppBar(title: const Text('Pantalla 2')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // Regresar a la pantalla anterior
+          },
+          child: const Text('Regresar a la pantalla principal'),
+        ),
+      ),
+    );
+  }
+}
+
+// Pantalla 3
+class Screen3 extends StatelessWidget {
+  const Screen3({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFFD1C4E9), // Fondo color lavanda
+      appBar: AppBar(title: const Text('Pantalla 3')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // Regresar a la pantalla anterior
+          },
+          child: const Text('Regresar a la pantalla principal'),
+        ),
+      ),
+    );
+  }
+}
